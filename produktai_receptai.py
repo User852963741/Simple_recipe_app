@@ -49,7 +49,6 @@ class Pagrindinis:
         self.istrintirecepta = Button(langas, text="Istrinti recepta", command=self.trinurec)
         self.label5 = Label(langas, text="---------ATNAUJINIMAS---------")
         self.atnaujintiprodukta = Button(langas, text="Atnaujinti turima produkta", command=self.atnaujintiprod)
-        self.atnaujintirecepta = Button(langas, text="Atnaujinti turima recepta", command=self.atnaujintirec)
         self.label6 = Label(langas, text="---------UZDARYMAS---------")
         self.exit = Button(langas, text="Iseiti", command=self.uzdaryti)
         self.listboxas = Listbox(langas, width=45)
@@ -76,7 +75,6 @@ class Pagrindinis:
         self.istrintirecepta.grid(row=15, column=1)
         self.label5.grid(row=16, column=1)
         self.atnaujintiprodukta.grid(row=17, column=1)
-        self.atnaujintirecepta.grid(row=18, column=1)
         self.label6.grid(row=19, column=1)
         self.exit.grid(row=20, column=1)
         # self.frame.grid(row=8, column=2, sticky=E)
@@ -277,29 +275,27 @@ class Pagrindinis:
 
 
     def atnaujintiprod(self):
-        selected_checkbox = self.listboxas.curselection()
-        for i in selected_checkbox:
-            id = self.listboxas.get(i).split()[0]
-            print(id)
-            produktas = session.query(TurimasProduktas).filter(TurimasProduktas.id==id).one()
-            print(produktas.kiekis)
-        self.pridejimo = Toplevel(self.langas) 
-        self.label1 = Label(self.pridejimo, text= "Irasykite kiek turime")
-        self.entry1 = Entry(self.pridejimo)
-        self.entry1.insert(0, produktas.kiekis)
-        self.button = Button(self.pridejimo, text="Spauskite, kad atnaujinti", command=self.atnaujinti_prod_spaud)
+        self.atnaujinimo = Toplevel(self.langas) 
+        self.label1 = Label(self.atnaujinimo, text= "Irasykite atnaujinamo produkto ID is turimu produktu saraso")
+        self.entry1 = Entry(self.atnaujinimo)
+        self.label2 = Label(self.atnaujinimo, text= "Iveskite nauja kieki")
+        self.entry2 = Entry(self.atnaujinimo)
+        self.button = Button(self.atnaujinimo, text="Spauskite, kad atnaujinti", command=self.atnaujinti_prod_spaud)
         self.label1.grid(row=0, column=0)
         self.entry1.grid(row=0, column=1)
-        self.button.grid(row=1, columnspan=2)
-    
-    def atnaujinti_prod_spaud(self):
-        pass
+        self.label2.grid(row=1, column=0)
+        self.entry2.grid(row=1, column=1)
+        self.button.grid(row=2, columnspan=3)
         
     
-    
-    
-    def atnaujintirec(self):
-        pass
+    def atnaujinti_prod_spaud(self):
+        produktas = session.query(TurimasProduktas).filter(TurimasProduktas.id==int(self.entry1.get())).one()
+        if int(self.entry2.get()) > 0:
+            produktas.kiekis = int(self.entry2.get())
+        else:
+            session.query(TurimasProduktas).filter(TurimasProduktas.id==int(self.entry1.get())).delete()
+        session.commit()
+        self.perziureti_produktus()
 
     
 
