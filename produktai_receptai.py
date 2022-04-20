@@ -45,8 +45,8 @@ class Pagrindinis:
         self.label3 = Label(langas, text="---------PRODUKTU SUNAUDOJIMAS---------")
         self.gaminam = Button(langas, text="Gaminti recepta", command=self.gaminame)
         self.label4 = Label(langas, text="---------TRINIMAS---------")
-        self.istrintiprodukta = Button(langas, text="Istrinti turima produkta", command=self.trinuprod)
-        self.istrintirecepta = Button(langas, text="Istrinti turima recepta", command=self.trinurec)
+        self.istrintiprodukta = Button(langas, text="Istrinti produkta", command=self.trinuprod)
+        self.istrintirecepta = Button(langas, text="Istrinti recepta", command=self.trinurec)
         self.label5 = Label(langas, text="---------ATNAUJINIMAS---------")
         self.atnaujintiprodukta = Button(langas, text="Atnaujinti turima produkta", command=self.atnaujintiprod)
         self.atnaujintirecepta = Button(langas, text="Atnaujinti turima recepta", command=self.atnaujintirec)
@@ -164,7 +164,7 @@ class Pagrindinis:
         self.entry1 = Entry(self.pridejimo)
         self.entry2 = Entry(self.pridejimo)
         self.entry3 = Entry(self.pridejimo)
-        self.button = Button(self.pridejimo, text="Spauskite, kad prideti", command=self.prid_turim_spaud)
+        self.button = Button(self.pridejimo, text="Spauskite, kad prideti", command=self.prideti_produkta_recep_spaud)
         self.label1.grid(row=0, column=0)
         self.label2.grid(row=1, column=0)
         self.label3.grid(row=2, column=0)
@@ -185,6 +185,7 @@ class Pagrindinis:
             print("Kažką blogai įrašėte")
         self.entry1.delete(0, END)
         self.entry2.delete(0, END)
+        self.entry3.delete(0, END)
 
     def perziureti_pasiula(self):
         self.listboxas.delete(0, END)
@@ -205,23 +206,98 @@ class Pagrindinis:
             self.listboxas.insert(END, receptas)
 
     def galimpagaminti(self):
-        pass
+        sarasas = []
+        turimi = session.query(TurimasProduktas).all()
+        for produktas_turimas in turimi:
+            sarasas.append(produktas_turimas.produktas_id)
+        for receptas in session.query(Receptas).all():
+            atfiltruoti = session.query(ProduktasRecepte).filter(ProduktasRecepte.receptas_id == receptas.id)
+            print("---")
+            a = 0
+            for produktas in atfiltruoti:
+                if produktas.produktas_id in sarasas:
+                    pass
+                else:
+                    a += 1
+            if a == 0:
+                print(receptas.pavadinimas)
+            else:
+                print(f"{receptas.pavadinimas} neuztenka produktu")
+
 
     def perziureti_ingredientus(self):
-        pass
+        self.pridejimo = Toplevel(self.langas) 
+        self.label1 = Label(self.pridejimo, text= "Irasykite recepto ID is receptu saraso")
+        self.entry1 = Entry(self.pridejimo)
+        self.button = Button(self.pridejimo, text="Spauskite, kad perziureti", command=self.perziureti_ingredientus_spaud)
+        self.label1.grid(row=0, column=0)
+        self.entry1.grid(row=0, column=1)
+        self.button.grid(row=1, columnspan=2)
+        
+
+    def perziureti_ingredientus_spaud(self):
+        self.listboxas.delete(0, END)
+        visi = session.query(ProduktasRecepte).all()
+        for ingredientas in visi:
+            if ingredientas.receptas_id == int(self.entry1.get()):
+                self.listboxas.insert(END, ingredientas)
+            
+            
 
     def gaminame(self):
         pass
 
     def trinuprod(self):
-        pass
+        self.trinimo = Toplevel(self.langas) 
+        self.label1 = Label(self.trinimo, text= "Irasykite trinamo produkto ID is turimu produktu saraso")
+        self.entry1 = Entry(self.trinimo)
+        self.button = Button(self.trinimo, text="Spauskite, kad trinti", command=self.trinuprod_spaud)
+        self.label1.grid(row=0, column=0)
+        self.entry1.grid(row=0, column=1)
+        self.button.grid(row=1, columnspan=2)
+
+    def trinuprod_spaud(self):
+        session.query(TurimasProduktas).filter(TurimasProduktas.id == int(self.entry1.get())).delete()
+        session.commit()
+        self.perziureti_produktus()
 
     def trinurec(self):
-        pass
+        self.trinimo = Toplevel(self.langas) 
+        self.label1 = Label(self.trinimo, text= "Irasykite trinamo recepto ID is receptu saraso")
+        self.entry1 = Entry(self.trinimo)
+        self.button = Button(self.trinimo, text="Spauskite, kad trinti", command=self.trinurec_spaud)
+        self.label1.grid(row=0, column=0)
+        self.entry1.grid(row=0, column=1)
+        self.button.grid(row=1, columnspan=2)
+
+    def trinurec_spaud(self):
+        session.query(Receptas).filter(Receptas.id == int(self.entry1.get())).delete()
+        session.commit()
+        self.perziureti_receptus()
+
 
     def atnaujintiprod(self):
+        selected_checkbox = self.listboxas.curselection()
+        for i in selected_checkbox:
+            id = self.listboxas.get(i).split()[0]
+            print(id)
+            produktas = session.query(TurimasProduktas).filter(TurimasProduktas.id==id).one()
+            print(produktas.kiekis)
+        self.pridejimo = Toplevel(self.langas) 
+        self.label1 = Label(self.pridejimo, text= "Irasykite kiek turime")
+        self.entry1 = Entry(self.pridejimo)
+        self.entry1.insert(0, produktas.kiekis)
+        self.button = Button(self.pridejimo, text="Spauskite, kad atnaujinti", command=self.atnaujinti_prod_spaud)
+        self.label1.grid(row=0, column=0)
+        self.entry1.grid(row=0, column=1)
+        self.button.grid(row=1, columnspan=2)
+    
+    def atnaujinti_prod_spaud(self):
         pass
-
+        
+    
+    
+    
     def atnaujintirec(self):
         pass
 
