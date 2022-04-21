@@ -23,6 +23,7 @@ from tkinter import *
 engine = create_engine("sqlite:///produktai_receptai.db")
 session = sessionmaker(bind=engine)()
 
+
 class Pagrindinis:
     def __init__(self, langas):
         self.langas = langas
@@ -32,7 +33,7 @@ class Pagrindinis:
         self.langas.geometry("550x600")
         self.pasirinkimas = Label(langas, text="Pasirinkite ką norite daryt: ")
         self.label1 = Label(langas, text="---------PRIDEJIMAS---------")
-        self.pridetiproduktapasiul = Button(langas, text="Pridėti produkta prie pasiūlos", command=self.prideti_produkta_pasiul)
+        self.mygtukas_prideti_produkta_pasiul = Button(langas, text="Pridėti produkta prie pasiūlos", command=self.prideti_produkta_pasiul)
         self.pridetiprodukta = Button(langas, text="Pridėti pasirinkta produkta prie turimų", command=self.prideti_produkta_turim)
         self.pridetirecepta = Button(langas, text="Pridėti recepta", command=self.prideti_recepta)
         self.pridetiproduktarecep = Button(langas, text="Pridėti produkta prie recepto", command=self.prideti_produkta_recep)
@@ -58,7 +59,7 @@ class Pagrindinis:
         # self.label.image = image1
         self.pasirinkimas.grid(row=0, column=1)
         self.label1.grid(row=1, column=1)
-        self.pridetiproduktapasiul.grid(row=2, column=1)
+        self.mygtukas_prideti_produkta_pasiul.grid(row=2, column=1)
         self.pridetiprodukta.grid(row=3, column=1)
         self.pridetirecepta.grid(row=4, column=1)
         self.pridetiproduktarecep.grid(row=5, column=1)
@@ -109,8 +110,8 @@ class Pagrindinis:
 
     def prideti_produkta_turim(self):
         self.pridejimo = Toplevel(self.langas) 
-        self.label1 = Label(self.pridejimo, text= "Irasykite produkto ID is pasiulos")
-        self.label2 = Label(self.pridejimo, text= "Irasykite kiek turime")
+        self.label1 = Label(self.pridejimo, text="Irasykite produkto ID is pasiulos")
+        self.label2 = Label(self.pridejimo, text="Irasykite kiek turime")
         self.entry1 = Entry(self.pridejimo)
         self.entry2 = Entry(self.pridejimo)
         self.button = Button(self.pridejimo, text="Spauskite, kad prideti", command=self.prid_turim_spaud)
@@ -138,8 +139,9 @@ class Pagrindinis:
                 session.commit()
             except:
                 print("Kažką blogai įrašėte")
-            self.entry1.delete(0, END)
-            self.entry2.delete(0, END)
+            else:
+                self.entry1.delete(0, END)
+                self.entry2.delete(0, END)
 
     def prideti_recepta(self):
         self.pridejimo = Toplevel(self.langas) 
@@ -218,20 +220,17 @@ class Pagrindinis:
             sarasas.append(produktas_turimas.produktas_id)
         for receptas in session.query(Receptas).all():
             atfiltruoti = session.query(ProduktasRecepte).filter(ProduktasRecepte.receptas_id == receptas.id)
-            a = 0
+            trukumas = 0
             for produktas in atfiltruoti:
                 turimas_produktas = session.query(TurimasProduktas).filter(TurimasProduktas.produktas_id == produktas.produktas_id).first()
-                if produktas.produktas_id in sarasas :
-                    if produktas.kiekis <= turimas_produktas.kiekis:
-                        pass
-                    else:
-                        a+= 1
+                if produktas.produktas_id in sarasas:
+                    if produktas.kiekis > turimas_produktas.kiekis:
+                        trukumas += 1
                 else:
-                    a += 1
-            if a == 0:
+                    trukumas += 1
+            if trukumas == 0:
                 self.listboxas.insert(END, receptas)
                 sarasiukas.append(receptas.id)
-                
             else:
                 pass
         return sarasiukas
@@ -317,7 +316,7 @@ class Pagrindinis:
         self.label2.grid(row=1, column=0)
         self.entry2.grid(row=1, column=1)
         self.button.grid(row=2, columnspan=3)
-         
+
     def atnaujinti_prod_spaud(self):
         produktas = session.query(TurimasProduktas).filter(TurimasProduktas.id==int(self.entry1.get())).one()
         if int(self.entry2.get()) > 0:
@@ -326,19 +325,14 @@ class Pagrindinis:
             session.query(TurimasProduktas).filter(TurimasProduktas.id==int(self.entry1.get())).delete()
         session.commit()
         self.perziureti_produktus()
-        
-       
 
     def uzdaryti(self):
         self.langas.destroy()
-
-
 
 def main():
     langas = Tk()
     app = Pagrindinis(langas)
     langas.mainloop()
-
 
 if __name__ == '__main__':
     main()
