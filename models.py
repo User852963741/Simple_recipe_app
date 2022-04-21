@@ -15,14 +15,6 @@ class TurimasProduktas(Base):
     produktas_id = Column(Integer, ForeignKey("produktas.id"))
     produktas = relationship("Produktas")
     
-    # def paimtiinfo(self):
-    #     a = session.query(Produktas).get(1)
-    #     return a
-
-
-    # def __repr__(self):
-    #     return f"{self.produktas_id} yra tiek  - {self.kiekis}, {self.paimtiinfo()}"
-    
     def __repr__(self):
         return f" {self.id} {self.produktas_id} yra tiek  - {self.kiekis}"
 
@@ -34,6 +26,7 @@ class Produktas(Base):
     
     def __repr__(self):
         return f"{self.id} {self.pavadinimas} matuojama {self.mato_vnt}"
+
 
 class ProduktasRecepte(Base):
     __tablename__ = "produktas_recepte"
@@ -47,6 +40,7 @@ class ProduktasRecepte(Base):
     def __repr__(self):
         return f" {self.id} {self.produktas_id} {self.receptas_id} {self.kiekis}"
 
+
 class Receptas(Base):
     __tablename__ = "receptai"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -54,6 +48,7 @@ class Receptas(Base):
 
     def __repr__(self):
         return f"{self.id} {self.pavadinimas}"
-    
+
+
 Base.metadata.create_all(engine)
 
